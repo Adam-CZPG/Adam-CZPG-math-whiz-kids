@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Play, Trophy, Award, Sparkles } from 'lucide-react';
@@ -12,22 +12,22 @@ import ProgressStats from '@/components/game/ProgressStats';
 export default function Home() {
   const navigate = useNavigate();
   
-  // --- LOKAL HOLAT (Server o'rniga) ---
-  const [progress, setProgress] = useState({
-    total_problems_solved: 0,
-    current_level: 1,
-    current_streak: 0,
-    best_streak: 0,
-    total_stars: 0,
-    badges: [],
-    accuracy_percentage: 0,
-    total_attempts: 0,
-    xp_points: 0,
-    completed_levels: []
+  // Ma'lumotlarni localStorage'dan yuklash
+  const [progress, setProgress] = useState(() => {
+    const savedProgress = localStorage.getItem('PlayerProgress');
+    return savedProgress ? JSON.parse(savedProgress) : {
+      total_problems_solved: 0,
+      current_level: 1,
+      current_streak: 0,
+      best_streak: 0,
+      total_stars: 0,
+      badges: [],
+      accuracy_percentage: 0,
+      total_attempts: 0,
+      xp_points: 0,
+      completed_levels: []
+    };
   });
-
-  // Loading holatini olib tashlaymiz yoki juda qisqa qilamiz
-  const [isLoading, setIsLoading] = useState(false);
 
   const levels = Array.from({ length: 10 }, (_, i) => i + 1);
   
@@ -111,8 +111,8 @@ export default function Home() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.05 }}
-                  onClick={() => navigate(`/game/${level}`)}
-                  className="cursor-pointer"
+                  onClick={() => isLevelUnlocked(level) && navigate(`/game/${level}`)}
+                  className={isLevelUnlocked(level) ? "cursor-pointer" : "cursor-not-allowed"}
                 >
                     <LevelCard
                       level={level}
@@ -125,7 +125,7 @@ export default function Home() {
               ))}
             </motion.div>
 
-            {/* Quick Play Button */}
+            {/* Quick Play Button (O'yin tugmalari o'chirildi) */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -139,20 +139,6 @@ export default function Home() {
                 <Sparkles className="w-6 h-6 mr-3" />
                 Continue Level {progress?.current_level || 1}
               </Button>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl">
-                <Button onClick={() => navigate('/MemoryGame')} className="w-full h-14 px-6 text-lg font-bold bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 rounded-2xl shadow-xl shadow-purple-500/30">
-                  🧠 Memory Match
-                </Button>
-
-                <Button onClick={() => navigate('/StackDrop')} className="w-full h-14 px-6 text-lg font-bold bg-gradient-to-r from-indigo-400 to-purple-600 hover:from-indigo-500 hover:to-purple-700 rounded-2xl shadow-xl shadow-indigo-500/30">
-                  📦 Stack & Drop
-                </Button>
-
-                <Button onClick={() => navigate('/TapPerfect')} className="w-full h-14 px-6 text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 rounded-2xl shadow-xl shadow-pink-500/30">
-                  🏹 Archery Master
-                </Button>
-              </div>
             </motion.div>
           </TabsContent>
 
